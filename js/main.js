@@ -1,6 +1,6 @@
 /**
  * Common API and core functionalities for qTranslate-XT
  */
-import './pages';
+require( './pages');
 
-export * from './core';
+require( './core');

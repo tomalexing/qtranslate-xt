@@ -5,13 +5,16 @@
  */
 'use strict';
 
-(function () {
+(function () {  
     // console.log('QT-XT API: setup apiFetch');
     wp.apiFetch.use((options, next) => {
         if (!options.path || (options.method !== 'PUT' && options.method !== 'POST')) {
             return next(options);
         }
         const editor = wp.data.select('core/editor');
+        const qtranslateStore = wp.data.select('qtranslate-xt');
+        const switchLanguage = qtranslateStore.getCurrentLanguage();
+        const previousLanguage = qtranslateStore.getPreviousLanguage();
         if (!editor) {
             return next(options);
         }
@@ -26,21 +29,25 @@
         if (!typeData.hasOwnProperty('rest_base')) {
             return next(options);
         }
-        // console.log('QT-XT API: PRE handling method=' + options.method, 'path=' + options.path, 'post=', post, 'type=', typeData);
+        console.log('QT-XT API: PRE handling method=' + options.method, 'path=' + options.path, 'post=', post, 'type=', typeData);
         const prefixPath = '/wp/v2/' + typeData.rest_base + '/' + post.id;
 
         if ((options.path.startsWith(prefixPath) && options.method === 'PUT') ||
-            (options.path.startsWith(prefixPath + '/autosaves') && options.method === 'POST')) {
+            (options.path.startsWith(prefixPath + '/autosaves') && options.method === 'POST') || 
+            options.path.startsWith('/wp/v2/settings') && options.data.title) {
             // console.log('QT-XT API: handling method=' + options.method, 'path=' + options.path, 'post=', post);
-            if (!post.hasOwnProperty('qtx_editor_lang')) {
+            if (!post.hasOwnProperty('qtx_editor_lang') && !switchLanguage) {
                 console.log('QT-XT API: missing field [qtx_editor_lang] in post id=' + post.id);
                 return next(options);
             }
-            const newOptions = {
+
+             const newOptions = {
                 ...options,
                 data: {
                     ...options.data,
-                    'qtx_editor_lang': post.qtx_editor_lang
+                    'wp_id': post.wp_id,
+                    'qtx_editor_lang': post.qtx_editor_lang ?? previousLanguage,
+                    'switch_qtx_lang': switchLanguage,
                 }
             };
             // console.log('QT-XT API: using options=', options);

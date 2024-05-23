@@ -32,7 +32,6 @@ class QTX_Module_Loader {
      */
     public static function load_active_modules(): void {
         $modules_state = get_option( QTX_OPTIONS_MODULES_STATE, array() );
-
         foreach ( $modules_state as $module_id => $state ) {
             if ( $state === QTX_MODULE_STATE_ACTIVE ) {
                 require_once QTRANSLATE_DIR . '/src/modules/' . $module_id . '/' . 'loader.php';
